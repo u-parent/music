@@ -68,11 +68,11 @@
                             <span class="fa fa-step-forward fa-2x next"></span>
                         </div>
                         <div class="volume">
-                            <span class="fa fa-volume-up fa-2x volume-icon"></span>
-                            <div class="volume-bar">
-                                <div class="bar"></div>
-                            </div>
-                            <span class="marker"></span>
+                            <span class="fa fa-volume-up fa-2x volume-icon">
+                                <div class="volume-bar">
+                                    <div class="bar"></div>
+                                </div>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -90,6 +90,8 @@
             next       = document.querySelector('.next');
         let songProgress = document.querySelector('#progress'),
             timeProgress = document.querySelector('#progress div');
+        let volumeBar = document.querySelector('.volume-bar'),
+            vBar = document.querySelector('.volume-bar .bar');
         let sound = () => {
             if(typeof music.audioCtx != 'undefined'){
                 sound = soundVisual(canvas, music.audioCtx.analyser, true);
@@ -146,6 +148,14 @@
             EventUtil.addEvent(songProgress, 'mouseup', (e) => {
                 timeProgress.style.width = `${currentWidth}%`;
                 audio.currentTime = ((audio.duration / 100) * parseInt(currentWidth));
+            });
+            EventUtil.addEvent(volumeBar, 'mousedown', (e) => {
+                
+                currentWidth = (e.offsetX / volumeBar.offsetWidth) * 100;
+             });
+            EventUtil.addEvent(volumeBar, 'mouseup', (e) => {
+                vBar.style.width = `${currentWidth}%`;
+                audio.volume = parseInt(currentWidth) / 100;
             });
             EventUtil.addEvent(previous, 'click', (e) => {
                 let song = music.songManage.getSong(null, 1);

@@ -20,9 +20,6 @@ img{
 a{
     text-decoration-color: rgba(200, 210, 240, 1);
 }
-*, *::after, *::before{
-    transition: all 200ms;
-}
 .cf::before,
 .cf::after{
     display: block;
@@ -125,7 +122,6 @@ a{
     display: table;
     width: 100%;
     text-align: center;
-    
 }
 #control div{
     display: table-cell;
@@ -134,22 +130,25 @@ a{
 #control div span:hover {
     cursor: pointer;
     color: cornsilk;
+    
 }
 #control .volume{
     position: relative;
+    
 }
 #control .volume .volume-bar{
     position: absolute;
     background-color: aliceblue;
     top: 45%;
-    left: 63%;
+    left: 62%;
     width: 0;
     height: 8px;
+    transition: all 200ms;
 }
 #control .volume span.marker{
     position: absolute;
-    top: 41%;
-    left: 62%;
+    top: 42.5%;
+    left: 61%;
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -157,12 +156,16 @@ a{
     display: none;
 }
 #control .volume div.volume-bar div.bar{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 8px;
     background-color: rgb(37, 37, 37);
 }
-#control .volume:hover .volume-bar{
+#control .volume span:hover .volume-bar{
     width: 40%;
 }
-#control .volume:hover .marker{
+#control .volume span:hover .marker{
     display: initial;
 }
