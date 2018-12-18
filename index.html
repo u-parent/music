@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./public/css/font-awesome-4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="./public/css/music.css">
+    <title>Binyu -- music</title>
+</head>
+<body>
+    <div id='audio-main'>
+        <audio preload="auto"></audio>
+    </div>
+    <div id="music">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4" id="user-musics">
+                    <div id="user">
+                        <div class="header">
+                            <img src="public/img/logo.jpg" alt="头像">
+                        </div>
+                    </div>
+                    <div id="music-list">
+                        <ul class="list">
+                        </ul>
+                    </div>
+                    <div class="time">
+                        <div>
+                            <span>
+                                今天是星期4，18年的最后一个月
+                            </span>
+                        </div>
+                        <div>
+                            <span>
+                                如果有什么好听的歌，请一定要推荐给<a href="#">阿奴</a>哟
+                            </span>
+                        </div>
+                        <div class="stylist">
+                            <span>设计：范东雨</span>
+                        </div>
+                    </div>   
+                </div>
+                <div class="col-md-8" id="music-manage">
+                    <div id="lyric">
+                        <ul class="lyric-list">
+                        </ul>
+                    </div>
+                    <div id="frequent">
+                        <canvas>声音可视化</canvas>
+                    </div>
+                    <div id="progress">
+                        <div></div>
+                    </div>
+                    <div id="control">
+                        <div>
+                            <span class="fa fa-heart-o fa-2x love"></span>
+                        </div>
+                        <div>
+                            <span class="fa fa-step-backward fa-2x previous"></span>
+                        </div>
+                        <div>
+                            <span class="fa fa-play-circle fa-2x play-pause"></span>
+                        </div>
+                        <div>
+                            <span class="fa fa-step-forward fa-2x next"></span>
+                        </div>
+                        <div class="volume">
+                            <span class="fa fa-volume-up fa-2x volume-icon"></span>
+                            <div class="volume-bar">
+                                <div class="bar"></div>
+                            </div>
+                            <span class="marker"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="public/js/music.js"></script>
+    <script>
+        let audio      = document.querySelector('audio'),
+            lyricContainer  = document.querySelector('#lyric .lyric-list'),
+            playButton = document.querySelector('.play-pause'),
+            showSong   = document.querySelector('#music-list .list'),
+            canvas     = document.querySelector('canvas'),
+            previous   = document.querySelector('.previous'),
+            next       = document.querySelector('.next');
+        let songProgress = document.querySelector('#progress'),
+            timeProgress = document.querySelector('#progress div');
+        let sound = () => {
+            if(typeof music.audioCtx != 'undefined'){
+                sound = soundVisual(canvas, music.audioCtx.analyser, true);
+                sound.startDraw((buffer, ctx, w, h, bar = 1000, analyser) => {
+			        let x = 0, barWidth = 0, barHeigth = 0;
+			        for(let i = 0; i < bar; i++){
+				        x = i * 4;
+				        barWidth = (analyser.frequencyBinCount / bar) * 2.5;
+                        barHeigth = -(buffer[i] / 1.5);
+                        ctx.fillRect(x, h, barWidth, barHeigth);
+                    }
+                });
+            }
+        };
+        {
+            function playSong(){
+                music.play();
+                playButton.classList.replace('fa-play-circle', 'fa-pause-circle');
+                typeof sound == 'function' ? sound() : '';
+                sound.runState = true;
+                playState = false;
+            }
+            function pauseSong(){
+                audio.pause();
+                playButton.classList.replace('fa-pause-circle', 'fa-play-circle');
+                sound.runState = false;
+                playState = true;
+            }
+            function changeSong(song){
+                if(typeof song == 'undefined'){
+                    console.log(song);
+                    return false;
+                }
+                while(lyricContainer.firstElementChild){
+                    lyricContainer.removeChild(lyricContainer.lastElementChild);
+                }
+                audio.src = song.data.src;
+                if(song.data.lyric != 'null'){
+                    music.lyric.getLyric(song.data.lyric, 'li', (lyricNodeMap) => lyricMap = lyricNodeMap);
+                }else{
+                    let noLyric = document.createElement('li');
+                    noLyric.innerText = '没有歌词啊';
+                    lyricContainer.appendChild(noLyric);
+                }
+            }
+            let playState = false;
+            let lyricMap  = {};
+            let manyNextLyrciNode = null;
+            let previousLyricNode = null;
+            let currentWidth = 0;
+            EventUtil.addEvent(songProgress, 'mousedown', (e) => {
+                currentWidth = (e.offsetX / songProgress.offsetWidth) * 100;
+             });
+            EventUtil.addEvent(songProgress, 'mouseup', (e) => {
+                timeProgress.style.width = `${currentWidth}%`;
+                audio.currentTime = ((audio.duration / 100) * parseInt(currentWidth));
+            });
+            EventUtil.addEvent(previous, 'click', (e) => {
+                let song = music.songManage.getSong(null, 1);
+                changeSong(song);
+                playSong();
+            });
+            EventUtil.addEvent(next, 'click', (e) => {
+                let song = music.songManage.getSong(null, 0);
+                changeSong(song);
+                playSong();
+            });
+            EventUtil.addEvent(audio, 'timeupdate', (e) => {
+                let lyricNode = lyricMap[parseInt(audio.currentTime) + 1];
+                if(lyricNode){
+                    if(previousLyricNode != null){
+                        previousLyricNode.style.color = 'black';
+                    }
+                    lyricNode.style.color = 'red';
+                    previousLyricNode = lyricNode;
+                }
+                try{
+                    manyNextLyrciNode = lyricNode.nextElementSibling.
+                                            nextElementSibling.nextElementSibling;
+                    manyNextLyrciNode.scrollIntoView(false);
+                }catch(ex){
+                    ;
+                }
+                timeProgress.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+            });
+            EventUtil.addEvent(showSong, 'dblclick', (e) => {
+                let beClickNode = EventUtil.getEvent(e).target;
+                if(beClickNode.nodeName.toLowerCase() === 'li'){
+                    let song = music.songManage.querySong(beClickNode.innerText);
+                    changeSong(song);
+                    playSong();
+                }
+            });
+            EventUtil.addEvent(playButton, 'click', () => {
+                if(playState){
+                    playSong();
+                    
+                }else{
+                    pauseSong();
+                }
+            });
+        }
+        music.init('/public/data.json', audio, lyricContainer, (songMap) => {
+            for(let songName in songMap){
+                let item = document.createElement('li');
+                item.innerText = songName;
+                showSong.appendChild(item);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+html, body{
+    height: 100%;
+    overflow: hidden;
+    margin: 0px;
+    font-size: 16px;
+}
+ul{
+    padding: 4px;
+    list-style: none;
+    text-align: center;
+}
+ul li{
+    padding: 4px;
+}
+img{
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+a{
+    text-decoration-color: rgba(200, 210, 240, 1);
+}
+*, *::after, *::before{
+    transition: all 200ms;
+}
+.cf::before,
+.cf::after{
+    display: block;
+    content: ' ';
+    clear: both;
+}
+#music{
+    position: relative;
+    min-height: 100%;
+    background-color: rgba(182, 190, 227, 1);
+    font-family: '仿宋','华文琥珀','楷书';
+}
+#music .container{
+    height: 100vh;
+}
+#music .container #user-musics{
+    height: 100vh;
+    padding: 10px 0px;
+    text-align: center;
+}
+#music .container #user-musics #user .header{
+    height: 15vh;
+    padding: 10px;
+}
+#music .container #user-musics #user .header img{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 1px 5px 3px rgba(10, 10, 10, .3);
+}
+#music .container #user-musics #music-list{
+    height: 70vh;
+    background-color: rgba(200, 210, 240, 1);
+}
+#music .container #user-musics #music-list .list{
+    text-align: left;
+}
+#music-list .list li{
+    padding: 4px;
+}
+#music-list .list li:hover{
+    cursor: pointer;
+    background-color: rgba(10, 10, 10, .3);
+}
+#music .container #user-musics .time{
+    height: 15vh;
+    padding: 4px;
+}
+#music .time .stylist{
+    font-size: 1rem;
+}
+#music #music-manage{
+    padding: 10px 0px;
+}
+#lyric{
+    position: relative;
+    height: 65vh;
+}
+#lyric .lyric-list{
+    position: absolute;
+    height: 250px;
+    width: 100%;
+    top: 50%;
+    margin-top: -125px;
+    overflow: hidden;
+}
+#lyric .lyric-list li{
+    padding: 5px;
+}
+#frequent{
+    height: 20vh;
+    padding: 8px;
+    margin: 1vh 0px;
+}
+#frequent canvas{
+    position: relative;
+    width: 90%;
+    height: 100%;
+    margin: 0 5%;
+}
+#progress{
+    height: 4px;
+    width: 100%;
+    background-color: aliceblue;
+    margin: 0px 10px;
+    cursor: pointer;
+}
+#progress div{
+    position: relative;
+    width: 0%;
+    height: 100%;
+    background-color: rgb(37, 37, 37);
+}
+#progress span{
+    cursor: auto;
+}
+#control{
+    height: 15vh;
+    display: table;
+    width: 100%;
+    text-align: center;
+    
+}
+#control div{
+    display: table-cell;
+    vertical-align: middle;
+}
+#control div span:hover {
+    cursor: pointer;
+    color: cornsilk;
+}
+#control .volume{
+    position: relative;
+}
+#control .volume .volume-bar{
+    position: absolute;
+    background-color: aliceblue;
+    top: 45%;
+    left: 63%;
+    width: 0;
+    height: 8px;
+}
+#control .volume span.marker{
+    position: absolute;
+    top: 41%;
+    left: 62%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: rgb(37, 37, 37);
+    display: none;
+}
+#control .volume div.volume-bar div.bar{
+    height: 8px;
+    background-color: rgb(37, 37, 37);
+}
+#control .volume:hover .volume-bar{
+    width: 40%;
+}
+#control .volume:hover .marker{
+    display: initial;
+}

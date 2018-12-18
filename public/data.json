@@ -1,0 +1,14 @@
+{
+    "test.mp3":{
+        "src":"public/music/test.mp3",
+        "lyric":"null"
+    },
+    "666.mp3":{
+        "src":"public/music/666.mp3",
+        "lyric":"public/Lyric/666.lrc"
+    },
+    "Aki阿杰、清弄 - 叙世.mp3":{
+        "src":"public/music/Aki阿杰、清弄 - 叙世.mp3",
+        "lyric":"public/Lyric/叙世.lrc"
+    }
+}
