@@ -4,6 +4,9 @@ html, body{
     margin: 0px;
     font-size: 16px;
 }
+*{
+    transition: all 200ms;
+}
 ul{
     padding: 4px;
     list-style: none;
@@ -61,7 +64,24 @@ a{
 #music-list .list li{
     padding: 4px;
 }
-#music-list .list li:hover{
+#music-list .list .query-song input{
+    display: inline-block;
+    position: relative;
+    width: 80%;
+    outline: none;
+    border: none;
+    background-color: rgba(37, 37, 37,0);
+}
+#music-list .list .line{
+    display: block;
+    height: 2px;
+    width: 0%;
+    background-color: rgba(10, 10, 10, .3);
+}
+#music-list .list .query-song:focus-within .line{
+    width: 100%;
+}
+#music-list .list li:not(.query-song):hover{
     cursor: pointer;
     background-color: rgba(10, 10, 10, .3);
 }
@@ -143,7 +163,6 @@ a{
     left: 62%;
     width: 0;
     height: 8px;
-    transition: all 200ms;
 }
 #control .volume span.marker{
     position: absolute;

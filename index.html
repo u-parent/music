@@ -8,6 +8,7 @@
     <link href="https://cdn.bootcss.com/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./public/css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="./public/css/music.css">
+    <link rel="icon" type="image/png" href="octocat.png">
     <title>Binyu -- music</title>
 </head>
 <body>
@@ -20,11 +21,16 @@
                 <div class="col-md-4" id="user-musics">
                     <div id="user">
                         <div class="header">
-                            <img src="public/img/logo.jpg" alt="头像">
+                            <img src="octocat.png" alt="头像">
                         </div>
                     </div>
                     <div id="music-list">
                         <ul class="list">
+                            <li class="query-song">
+                                <span class="fa fa-search"></span>
+                                <input type="text">
+                                <span class="line"></span>
+                            </li>
                         </ul>
                     </div>
                     <div class="time">
@@ -168,7 +174,7 @@
                 playSong();
             });
             EventUtil.addEvent(audio, 'timeupdate', (e) => {
-                let lyricNode = lyricMap[parseInt(audio.currentTime) + 1];
+                let lyricNode = lyricMap[parseInt(audio.currentTime)];
                 if(lyricNode){
                     if(previousLyricNode != null){
                         previousLyricNode.style.color = 'black';

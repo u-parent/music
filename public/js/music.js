@@ -15,7 +15,7 @@
 		constructor(lyricContainer){
 			this.lyricContainer = lyricContainer;
 		}
-		_parseLyric(lyricText){
+		parseLyric(lyricText){
 			let lyrciMap = {};
 			let lyricLineList = lyricText.split(/\n/g);
 			lyricLineList.forEach((line) => {
@@ -25,7 +25,7 @@
 			});
 			return lyrciMap;
 		}
-		_renderLyric(lyricMap = {}, renderNodeName = 'li'){
+		renderLyric(lyricMap = {}, renderNodeName = 'li'){
 			while(this.lyricContainer.firstElementChild){
 				this.lyricContainer.removeChild(this.lyricContainer.firstElementChild);
 			}
@@ -43,7 +43,7 @@
 					async = callBack != null ? true : false;
 			ajaxGetData(url, async).
 				then((lyricText) => {
-					lyricNodeMap = this._renderLyric(this._parseLyric(lyricText));
+					lyricNodeMap = this.renderLyric(this.parseLyric(lyricText));
 					if(async){
 						callBack(lyricNodeMap);
 					}
