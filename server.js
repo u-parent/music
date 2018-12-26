@@ -1,26 +1,45 @@
-const fs = require('fs');
-const http = require('http');
-const mime = require('mime');
-http.createServer((req, res) => {
-    if(req.url == '/'){
-        fs.readFile('./index.html', (err, data) => {
-            res.writeHead(200, {'Content-type':'text/html; charset=utf-8'});
-            res.end(data.toString());
+const express = require('express');
+const url     = require('url');
+const util    = require('util');
+const fs      = require('fs');
+const kugou   = require('./lib/kugou');
+let app = express();
+app.use('/public', express.static('public'));
+app.get('/', (req, res) => {
+    const stream = fs.createReadStream('index.html', {encoding:'utf-8'});
+    res.writeHead(200, {'Content-type':'text/html; charset=utf-8'});
+    stream.pipe(res);
+});
+app.get('/search', (req, res) => {
+    let params = url.parse(req.url, true).query;
+    kugou.get({
+        name: params.value,
+        optionName: params.option
+    }, (songListData) => {
+       res.writeHead(200, {'Content-type':'application/json;charset=utf-8'});
+       res.end(songListData.toString());
+    });
+});
+app.get('/getSongInfo', (req, res) => {
+    let params = url.parse(req.url, true).query;
+    kugou.get({
+        hash: params.value,
+        optionName: params.option
+    }, (songData) => {
+        res.writeHead(200, {'Content-type':'application/json;charset=utf-8'});
+        res.end(songData.toString());
+    });
+});
+app.get('/getSongData', (req, res) => {
+    let songUrl = url.parse(req.url, true).query.songUrl.replace('////', '//');
+    kugou.getSongData(songUrl).
+        then((buf) => {
+            res.writeHead(200, {'Content-type': 'audio/mpeg'});
+            res.end(buf);
+        }).catch(err => {
+            console.log(err);
         });
-        console.log('s');   
-    }else{
-        let path = '.' + decodeURIComponent(req.url);
-        fs.readFile(path, (err, data) => {
-            if(err){
-                console.log(err.code);
-            }else{
-                res.writeHead(200, {'Content-type': mime.getType(path),
-                                    'Accept-Ranges':'bytes',
-                                    'Content-length':data.byteLength});
-                res.end(data);
-            }
-        });
-        console.log(path);
-    }
-    console.log(req.url);
-}).listen(80);
+});
+app.listen(8080, () => {
+    console.log('listen 80');
+});
