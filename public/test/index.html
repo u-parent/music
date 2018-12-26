@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <input type="file" class="my-file">
+    <button class='play'>播放</button>
+    <script src="../js//music.js"></script>
+    <script src="../js/media.js"></script>
+    <script>
+        let i = document.querySelector('input');
+        let p = document.querySelector('button');
+        let a = new (AudioContext || webkitAudioContext)();
+        let au = new Media(a);
+        i.addEventListener('change', (e) => {
+            readLocalFile(i.files[0]).
+                then((buffer) => {
+                    au.decode(buffer);
+                });
+        });
+        ajaxGetSongData('/getData?songUrl=http:\/\/fs.w.kugou.com\/201812251631\/23f674d6cec945dd58a74317341225ed\/G071\/M0A\/09\/0B\/hw0DAFeuN_WAFz1zADVvTPHnCWI352.mp3').
+            then((buf) => {
+                au.decode(buf);
+                console.log(au.analyser);
+            });
+    </script>
+</body>
+</html>

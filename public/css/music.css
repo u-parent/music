@@ -56,6 +56,7 @@ a{
 }
 #music .container #user-musics #music-list{
     height: 70vh;
+    overflow: auto;
     background-color: rgba(200, 210, 240, 1);
 }
 #music .container #user-musics #music-list .list{
@@ -64,21 +65,30 @@ a{
 #music-list .list li{
     padding: 4px;
 }
-#music-list .list .query-song input{
+#music-list .query-song input[type='text']{
     display: inline-block;
     position: relative;
-    width: 80%;
+    width: 70%;
     outline: none;
     border: none;
     background-color: rgba(37, 37, 37,0);
 }
-#music-list .list .line{
+#music-list .query-song input[type='submit']{
+    display: inline-block;
+    position: relative;
+    width: 20%;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    background-color: rgba(37, 37, 37,0);
+}
+#music-list .query-song .line{
     display: block;
     height: 2px;
     width: 0%;
     background-color: rgba(10, 10, 10, .3);
 }
-#music-list .list .query-song:focus-within .line{
+#music-list .query-song:focus-within .line{
     width: 100%;
 }
 #music-list .list li:not(.query-song):hover{
