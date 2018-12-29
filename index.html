@@ -8,12 +8,12 @@
     <link href="https://cdn.bootcss.com/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./public/css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="./public/css/music.css">
-    <link rel="icon" type="image/png" href="octocat.png">
+    <link rel="icon" type="image/png" href="public/img/octocat.png">
     <title>Binyu -- music</title>
 </head>
 <body>
     <div id='audio-main'>
-        <audio preload="auto"></audio>
+        <audio preload="auto" autoplay='true' cross-origin="anonymous"></audio>
     </div>
     <div id="music">
         <div class="container">
@@ -21,16 +21,17 @@
                 <div class="col-md-4" id="user-musics">
                     <div id="user">
                         <div class="header">
-                            <img src="octocat.png" alt="头像">
+                            <img src="./public/img/octocat.png" alt="头像">
                         </div>
                     </div>
                     <div id="music-list">
+                        <form class="query-song">
+                            <span class="fa fa-search"></span>
+                            <input type="text" class="in">
+                            <input type="submit" value="搜索">
+                            <span class="line"></span>
+                        </form>
                         <ul class="list">
-                            <li class="query-song">
-                                <span class="fa fa-search"></span>
-                                <input type="text">
-                                <span class="line"></span>
-                            </li>
                         </ul>
                     </div>
                     <div class="time">
@@ -85,136 +86,11 @@
             </div>
         </div>
     </div>
+    <script src="public/js/media.js"></script>
     <script src="public/js/music.js"></script>
     <script>
-        let audio      = document.querySelector('audio'),
-            lyricContainer  = document.querySelector('#lyric .lyric-list'),
-            playButton = document.querySelector('.play-pause'),
-            showSong   = document.querySelector('#music-list .list'),
-            canvas     = document.querySelector('canvas'),
-            previous   = document.querySelector('.previous'),
-            next       = document.querySelector('.next');
-        let songProgress = document.querySelector('#progress'),
-            timeProgress = document.querySelector('#progress div');
-        let volumeBar = document.querySelector('.volume-bar'),
-            vBar = document.querySelector('.volume-bar .bar');
-        let sound = () => {
-            if(typeof music.audioCtx != 'undefined'){
-                sound = soundVisual(canvas, music.audioCtx.analyser, true);
-                sound.startDraw((buffer, ctx, w, h, bar = 1000, analyser) => {
-			        let x = 0, barWidth = 0, barHeigth = 0;
-			        for(let i = 0; i < bar; i++){
-				        x = i * 4;
-				        barWidth = (analyser.frequencyBinCount / bar) * 2.5;
-                        barHeigth = -(buffer[i] / 1.5);
-                        ctx.fillRect(x, h, barWidth, barHeigth);
-                    }
-                });
-            }
-        };
-        {
-            function playSong(){
-                music.play();
-                playButton.classList.replace('fa-play-circle', 'fa-pause-circle');
-                typeof sound == 'function' ? sound() : '';
-                sound.runState = true;
-                playState = false;
-            }
-            function pauseSong(){
-                audio.pause();
-                playButton.classList.replace('fa-pause-circle', 'fa-play-circle');
-                sound.runState = false;
-                playState = true;
-            }
-            function changeSong(song){
-                if(typeof song == 'undefined'){
-                    console.log(song);
-                    return false;
-                }
-                while(lyricContainer.firstElementChild){
-                    lyricContainer.removeChild(lyricContainer.lastElementChild);
-                }
-                audio.src = song.data.src;
-                if(song.data.lyric != 'null'){
-                    music.lyric.getLyric(song.data.lyric, 'li', (lyricNodeMap) => lyricMap = lyricNodeMap);
-                }else{
-                    let noLyric = document.createElement('li');
-                    noLyric.innerText = '没有歌词啊';
-                    lyricContainer.appendChild(noLyric);
-                }
-            }
-            let playState = false;
-            let lyricMap  = {};
-            let manyNextLyrciNode = null;
-            let previousLyricNode = null;
-            let currentWidth = 0;
-            EventUtil.addEvent(songProgress, 'mousedown', (e) => {
-                currentWidth = (e.offsetX / songProgress.offsetWidth) * 100;
-             });
-            EventUtil.addEvent(songProgress, 'mouseup', (e) => {
-                timeProgress.style.width = `${currentWidth}%`;
-                audio.currentTime = ((audio.duration / 100) * parseInt(currentWidth));
-            });
-            EventUtil.addEvent(volumeBar, 'mousedown', (e) => {
-                
-                currentWidth = (e.offsetX / volumeBar.offsetWidth) * 100;
-             });
-            EventUtil.addEvent(volumeBar, 'mouseup', (e) => {
-                vBar.style.width = `${currentWidth}%`;
-                audio.volume = parseInt(currentWidth) / 100;
-            });
-            EventUtil.addEvent(previous, 'click', (e) => {
-                let song = music.songManage.getSong(null, 1);
-                changeSong(song);
-                playSong();
-            });
-            EventUtil.addEvent(next, 'click', (e) => {
-                let song = music.songManage.getSong(null, 0);
-                changeSong(song);
-                playSong();
-            });
-            EventUtil.addEvent(audio, 'timeupdate', (e) => {
-                let lyricNode = lyricMap[parseInt(audio.currentTime)];
-                if(lyricNode){
-                    if(previousLyricNode != null){
-                        previousLyricNode.style.color = 'black';
-                    }
-                    lyricNode.style.color = 'red';
-                    previousLyricNode = lyricNode;
-                }
-                try{
-                    manyNextLyrciNode = lyricNode.nextElementSibling.
-                                            nextElementSibling.nextElementSibling;
-                    manyNextLyrciNode.scrollIntoView(false);
-                }catch(ex){
-                    ;
-                }
-                timeProgress.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
-            });
-            EventUtil.addEvent(showSong, 'dblclick', (e) => {
-                let beClickNode = EventUtil.getEvent(e).target;
-                if(beClickNode.nodeName.toLowerCase() === 'li'){
-                    let song = music.songManage.querySong(beClickNode.innerText);
-                    changeSong(song);
-                    playSong();
-                }
-            });
-            EventUtil.addEvent(playButton, 'click', () => {
-                if(playState){
-                    playSong();
-                    
-                }else{
-                    pauseSong();
-                }
-            });
-        }
-        music.init('/public/data.json', audio, lyricContainer, (songMap) => {
-            for(let songName in songMap){
-                let item = document.createElement('li');
-                item.innerText = songName;
-                showSong.appendChild(item);
-            }
-        });
+        let media = new Media();
+        
     </script>
 </body>
 </html>
