@@ -93,15 +93,10 @@ function ajaxGetData(url = String){
 	});
 }
 let k = (function(){
-	let k = {
-		query: '/search',
-		getSongInfo: '/getSongInfo',
-		getSongData: '/getSongData'
-	};
 	return {
 		getSongInfo(o = Object){
 			return new Promise((resolve, reject) => {
-				let url = `${k[o.option]}?value=${encodeURIComponent(o.value)}&option=${o.option}`;
+				let url = `/song?value=${encodeURIComponent(o.value)}&option=${o.option}`;
 				ajaxGetData(url).
 					then(value => {
 						resolve(value);
