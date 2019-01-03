@@ -10,20 +10,10 @@ app.get('/', (req, res) => {
     res.writeHead(200, {'Content-type':'text/html; charset=utf-8'});
     stream.pipe(res);
 });
-app.get('/search', (req, res) => {
+app.get('/song', (req, res) => {
     let params = url.parse(req.url, true).query;
     kugou.get({
-        name: params.value,
-        optionName: params.option
-    }, (songListData) => {
-       res.writeHead(200, {'Content-type':'application/json;charset=utf-8'});
-       res.end(songListData.toString());
-    });
-});
-app.get('/getSongInfo', (req, res) => {
-    let params = url.parse(req.url, true).query;
-    kugou.get({
-        hash: params.value,
+        value: params.value,
         optionName: params.option
     }, (songData) => {
         res.writeHead(200, {'Content-type':'application/json;charset=utf-8'});
@@ -34,7 +24,9 @@ app.get('/getSongData', (req, res) => {
     let songUrl = url.parse(req.url, true).query.songUrl.replace('////', '//');
     kugou.getSongData(songUrl).
         then((buf) => {
-            res.writeHead(200, {'Content-type': 'audio/mpeg'});
+            res.writeHead(200, {'Content-type': 'audio/mpeg',
+                                    'Accept-Ranges': 'bytes',
+                                    'Content-length': buf.length});
             res.end(buf);
         }).catch(err => {
             console.log(err);

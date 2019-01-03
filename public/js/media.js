@@ -9,8 +9,11 @@ function ajaxGetSongData(url){
         xhr.send(null);
     });
 }
-
 class Media{
+    constructor(){
+        this.buffer = null;
+        this.isPlay = true;
+    }
     _emtry(){
         this.pause();
         this.ctx = null;
@@ -26,11 +29,13 @@ class Media{
             this.source = this.ctx.createBufferSource();
             this.ctx.decodeAudioData(buffer).
                 then((data) => {
+                    this.buffer = buffer;
                     this.source.buffer = data;
                     this.analyser = this.ctx.createAnalyser();
                     this.source.connect(this.analyser);
                     this.analyser.connect(this.ctx.destination);
                     this.source.start(0);
+                    this.isPlay = true;
                     resolve();
                 });
         });
@@ -39,13 +44,13 @@ class Media{
     play(){
         if(this.analyser !== undefined){
             this.analyser.connect(this.ctx.destination);
-            return true;
+            return this.isPlay = true;
         }
     }
     pause(){
-        if(this.ctx !== undefined){
+        if(this.analyser !== undefined){
             this.analyser.disconnect(this.ctx.destination);
-            return false;
+            return this.isPlay = false;
         }
     }
 }
