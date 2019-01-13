@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    
     <link href="https://cdn.bootcss.com/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./public/css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="./public/css/music.css">
-    <link rel="icon" type="image/png" href="public/img/octocat.png">
-    <title>Binyu -- music</title>
+    <link rel="icon" type="image/png" href="public/img/logo.jpg">
+    <title>BinYu -- 音乐</title>
 </head>
 <body>
+    <div id='bg'></div>
     <div id='audio-main'>
         <audio preload="auto" autoplay='true' cross-origin="anonymous"></audio>
     </div>
@@ -24,30 +24,29 @@
                             <img src="./public/img/octocat.png" alt="头像">
                         </div>
                     </div>
-                    <div id="music-list">
-                        <form class="query-song">
-                            <span class="fa fa-search"></span>
+                    <div id="query">
+                        <form class="query-song cf">
+                            <div class="dropdown">
+                                    <span class="query-k"></span>
+                                <div class="dropdown-content">
+                                    <div>
+                                        <span class="query-163"></span>
+                                    </div>
+                                </div>
+                                
+                            </div>
                             <input type="text" class="in">
-                            <input type="submit" value="搜索" class="s">
+                            <label for="sub-name"><span class="fa fa-search fa-1x"></span></label>
+                            <input type="submit" value="搜索" class="s" id='sub-name'>
                             <span class="line"></span>
                         </form>
+                    </div>
+                    <div id="music-list">
                         <ul class="list">
                         </ul>
                     </div>
-                    <div class="time">
-                        <div>
-                            <span>
-                                今天是星期4，18年的最后一个月
-                            </span>
-                        </div>
-                        <div>
-                            <span>
-                                如果有什么好听的歌，请一定要推荐给<a href="#">阿奴</a>哟
-                            </span>
-                        </div>
-                        <div class="stylist">
-                            <span>设计：范东雨</span>
-                        </div>
+                    <div class="music-option">
+                        <span>喜欢</span><span>酷狗</span><span>网易</span>
                     </div>   
                 </div>
                 <div class="col-md-8" id="music-manage">
@@ -66,13 +65,13 @@
                             <span class="fa fa-heart-o fa-2x love"></span>
                         </div>
                         <div>
-                            <span class="fa fa-step-backward fa-2x previous"></span>
+                            <span class="fa fa-play fa-2x previous"></span>
                         </div>
                         <div>
                             <span class="fa fa-play-circle fa-2x play-pause"></span>
                         </div>
                         <div>
-                            <span class="fa fa-step-forward fa-2x next"></span>
+                            <span class="fa fa-play fa-2x next"></span>
                         </div>
                         <div class="volume">
                             <span class="fa fa-volume-up fa-2x volume-icon">
@@ -89,6 +88,7 @@
     <script src="public/js/media.js"></script>
     <script src="public/js/music.js"></script>
     <script>
+
         let ml = new MusicLib(),
             currentPlayList = null;
         let audio = document.querySelector('audio');
@@ -100,6 +100,7 @@
                 x = 0;
             for(let i = 0; i < buffer.length; i++){
                 bHeigth = buffer[i];
+                ctx.fillStyle = `rgba(${bHeigth % 10}, ${bHeigth % 10}, ${bHeigth % 10}, ${.5})`;
                 ctx.fillRect(x, heigth - bHeigth / 2, bWidth, bHeigth);
                 x += bWidth + 1;
             }
@@ -108,10 +109,11 @@
             let rcs = [];
             while(parent.firstElementChild){
                 rcs.push(parent.removeChild(parent.firstElementChild));
-            }
+            } 
             return rcs;
         }
         let el = {
+            bg: document.querySelector('#bg'),
             music: document.querySelector('#music'),
             musicList: {
                 main: document.querySelector('.list'),
@@ -157,7 +159,7 @@
                 n = lyricNodes[time];
             if(n){
                 if(pLrcNode){
-                    pLrcNode.style.color = 'black';
+                    pLrcNode.style.color = n.style.color;
                 }
                 n.style.color = 'red';
                 pLrcNode = n;
@@ -191,7 +193,9 @@
                 value: hash,
                 option: 'song'
             }).then((songText) => {
-                let songData = JSON.parse(songText).data;
+                let songData = JSON.parse(songText);
+                console.log(songData);
+                el.bg.style.backgroundImage = `url(${songData.img})`;
                 EventUtil.tirgger('onePlay', songData);
             });
         });
@@ -206,7 +210,7 @@
                 value: name,
                 option: 'query'
             }).then((text) => {
-                let songList = JSON.parse(text).data.info;
+                let songList = JSON.parse(text).info;
                 ml.addList(name, songList);
                 showSongsInfo(name, songList);
             });
@@ -260,7 +264,8 @@
                 return false;
             }
             let x = e.layerX,
-                time = (x / e.target.offsetWidth * 100) * (audio.duration / 100);
+                time = (x / el.musicManage.mProgress.self.offsetWidth * 100) * (audio.duration / 100);
+            console.log(time, x, el.musicManage.mProgress.self.offsetWidth);
             audio.currentTime = time;
         })
         EventUtil.addEvent(audio, 'ended', (e) => {
@@ -269,7 +274,7 @@
                 value: hash,
                 option: 'song'
             }).then((songText) => {
-                let songData = JSON.parse(songText).data;
+                let songData = JSON.parse(songText);
                 EventUtil.tirgger('onePlay', songData);
             });
         });
@@ -279,7 +284,7 @@
                 value: hash,
                 option: 'song'
             }).then((songText) => {
-                let songData = JSON.parse(songText).data;
+                let songData = JSON.parse(songText);
                 EventUtil.tirgger('onePlay', songData);
             });
         });
@@ -289,7 +294,7 @@
                 value: hash,
                 option: 'song'
             }).then((songText) => {
-                let songData = JSON.parse(songText).data;
+                let songData = JSON.parse(songText);
                 EventUtil.tirgger('onePlay', songData);
             });
         });
@@ -305,7 +310,17 @@
         EventUtil.listen('play', play);
         //监听暂停
         EventUtil.listen('pause', pause);
-
+        window.onload = () => {
+            k.getSongInfo({
+                value: '冬离秋归',
+                option: 'query'
+            }).then((text) => {
+                let songList = JSON.parse(text).info;
+                ml.addList(name, songList);
+                showSongsInfo(name, songList);
+            });
+            alert('豳羽 -- 音乐2.0版本\n主要更新ui，跟部分优化了部分代码，删了不合理的地方\n设计师：范冬雨\n程序员：无名小将');
+        };
     </script>
 </body>
 </html>

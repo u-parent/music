@@ -131,7 +131,6 @@ let k = (function(){
 				xhr.onload = () => {
 					resolve(xhr.response);
 				}
-				console.log(url);
 				xhr.open('GET', `/getSongData?songUrl=${url}`, true);
 				xhr.send(null);
 			});

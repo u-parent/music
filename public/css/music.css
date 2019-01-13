@@ -1,10 +1,11 @@
 html, body{
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
     margin: 0px;
     font-size: 16px;
 }
 *{
+    color: rgba(255, 255, 255, .7);
     transition: all 200ms;
 }
 ul{
@@ -29,10 +30,22 @@ a{
     content: ' ';
     clear: both;
 }
+#bg{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(../img/1.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-origin: content-box;
+    filter: blur(20px);
+}
 #music{
     position: relative;
     min-height: 100%;
-    background-color: rgba(182, 190, 227, 1);
+    background-color: rgba(10, 10, 10, .5);
     font-family: '仿宋','华文琥珀','楷书';
 }
 #music .container{
@@ -44,70 +57,102 @@ a{
     text-align: center;
 }
 #music .container #user-musics #user .header{
-    height: 15vh;
+    height: 10vh;
     padding: 10px;
 }
 #music .container #user-musics #user .header img{
-    width: 100px;
-    height: 100px;
+    width: 8vh;
+    height: 8vh;
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 1px 5px 3px rgba(10, 10, 10, .3);
 }
+.query-song{
+    position: relative;
+    padding: 0px;
+    margin: 6px;
+    z-index: 101;
+}
+.query-song .dropdown{
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    z-index: 100;
+}
+.query-song .dropdown .dropdown-content{
+    display: none;
+}
+.query-song .dropdown:hover .dropdown-content{
+    display: block;
+}
+.query-song input[type='text']{
+    display: inline-block;
+    position: relative;
+    width: 75%;
+    outline: none;
+    border: none;
+    background-color: rgba(37, 37, 37,0);
+}
+.query-song input[type='submit']{
+    display: none;
+}
+.query-song .line{
+    display: block;
+    height: 2px;
+    width: 100%;
+    background-color: rgba(10, 10, 10, .3);
+}
+.query-song label{
+    position: absolute;
+    right: 1%;
+}
+.query-song .dropdown span{
+    padding: 1px;
+    background-color: rgb(238, 142, 142);
+}
+.query-song .dropdown span:hover{
+    cursor: pointer;
+    background-color: rgb(231, 111, 111);
+}
 #music .container #user-musics #music-list{
-    height: 70vh;
+    position: relative;
+    height: 80vh;
     overflow: auto;
-    background-color: rgba(200, 210, 240, 1);
+    background-color: rgba(95, 22, 89, 0.4);
 }
 #music .container #user-musics #music-list .list{
     text-align: left;
 }
 #music-list .list li{
     padding: 4px;
+    overflow: hidden;
 }
-#music-list .query-song input[type='text']{
-    display: inline-block;
-    position: relative;
-    width: 70%;
-    outline: none;
-    border: none;
-    background-color: rgba(37, 37, 37,0);
-}
-#music-list .query-song input[type='submit']{
-    display: inline-block;
-    position: relative;
-    width: 20%;
-    outline: none;
-    border: none;
+#music-list .list li:hover{
     cursor: pointer;
-    background-color: rgba(37, 37, 37,0);
+    background-color: rgb(37, 37, 37, .5);
 }
-#music-list .query-song .line{
-    display: block;
-    height: 2px;
-    width: 0%;
-    background-color: rgba(10, 10, 10, .3);
+.music-option{
+    height: 4vh;
+    margin: 4px 0px;
+    line-height: 4vh;
+    background-color: rgba(200, 210, 240, .2);
 }
-#music-list .query-song:focus-within .line{
-    width: 100%;
+.music-option span{
+    display: inline-block;
+    width: 33%;
+    height: 100%;
+    margin: 0px;
 }
-#music-list .list li:not(.query-song):hover{
+.music-option span:hover{
     cursor: pointer;
-    background-color: rgba(10, 10, 10, .3);
-}
-#music .container #user-musics .time{
-    height: 15vh;
-    padding: 4px;
-}
-#music .time .stylist{
-    font-size: 1rem;
+    background-color: rgb(140, 141, 145);
 }
 #music #music-manage{
     padding: 10px 0px;
 }
 #lyric{
     position: relative;
-    height: 65vh;
+    height: 60vh;
 }
 #lyric .lyric-list{
     position: absolute;
@@ -157,14 +202,17 @@ a{
     display: table-cell;
     vertical-align: middle;
 }
-#control div span:hover {
+.fa:hover {
     cursor: pointer;
     color: cornsilk;
-    
 }
 #control .volume{
     position: relative;
     
+}
+#control .previous{
+    transform-style: preserve-3d;
+    transform: rotateY(180deg);
 }
 #control .volume .volume-bar{
     position: absolute;
@@ -173,16 +221,6 @@ a{
     left: 62%;
     width: 0;
     height: 8px;
-}
-#control .volume span.marker{
-    position: absolute;
-    top: 42.5%;
-    left: 61%;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: rgb(37, 37, 37);
-    display: none;
 }
 #control .volume div.volume-bar div.bar{
     position: absolute;
@@ -193,8 +231,34 @@ a{
     background-color: rgb(37, 37, 37);
 }
 #control .volume span:hover .volume-bar{
-    width: 40%;
+    width: 38%;
 }
-#control .volume span:hover .marker{
-    display: initial;
+.query-k::after{
+    content: '酷狗';
+}
+.query-163::after{
+    content: '网易';
+}
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    /*background-color: #ddd;*/
+}
+/*滑块*/
+::-webkit-scrollbar-thumb {
+    
+    background: rgb(115, 132, 204);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    cursor: pointer;
+    background: -webkit-linear-gradient(top, rgb(96, 120, 224), rgba(190, 134, 134, 0.8));
+}
+
+
+/*滑道*/
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px #333;
+    border-radius: 10px;
 }
