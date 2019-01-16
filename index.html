@@ -85,242 +85,108 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
     <script src="public/js/media.js"></script>
     <script src="public/js/music.js"></script>
     <script>
-
-        let ml = new MusicLib(),
-            currentPlayList = null;
-        let audio = document.querySelector('audio');
-        function drawSound(buffer = Uint8Array, ctx = Object, width = Number, heigth = Number, 
-                            bar = Number, analyser = AnalyserNode){
-            ctx.clearRect(0, 0, width, heigth);
-            let bWidth = (width / buffer.length) * 10,
-                bHeigth = 0,
-                x = 0;
-            for(let i = 0; i < buffer.length; i++){
-                bHeigth = buffer[i];
-                ctx.fillStyle = `rgba(${bHeigth % 10}, ${bHeigth % 10}, ${bHeigth % 10}, ${.5})`;
-                ctx.fillRect(x, heigth - bHeigth / 2, bWidth, bHeigth);
-                x += bWidth + 1;
+        function draw(ctx, w, h, data){
+            ctx.clearRect(0,0, w, h);
+            let barWidth = (w / data.length) * 5,
+                x = 0,
+                barHeight;
+            for(let i = 0; i < data.length; i++) {
+                barHeight = data[i]/2;
+                ctx.fillStyle = `rgba(${barHeight + 100, barHeight / 2, barHeight * 0.5, .1})`;
+                ctx.fillRect(x, h-barHeight, barWidth, barHeight);
+                x += barWidth + 1;
             }
         }
-        function removeAllChild(parent = Element){
-            let rcs = [];
-            while(parent.firstElementChild){
-                rcs.push(parent.removeChild(parent.firstElementChild));
-            } 
-            return rcs;
+        function showList(list = Array){
+            $('#music-list .list').empty();
+            list.forEach((song) => {
+                $('#music-list .list').append(`<li data-name='${song.filename}' data-hash='${song.hash}'>${song.filename}</li>`)
+            });
         }
-        let el = {
-            bg: document.querySelector('#bg'),
-            music: document.querySelector('#music'),
-            musicList: {
-                main: document.querySelector('.list'),
-                queryMusic: {
-                    input: document.querySelector('.query-song .in'),
-                    submit: document.querySelector('.music-list .s'),
-                    queryForm: document.querySelector('.query-song')
-                }
-            },
-            control:{
-                previous: document.querySelector('.previous'),
-                love:document.querySelector('.love'),
-                next:document.querySelector('.next'),
-                play:document.querySelector('.play-pause'),
-                volume:{
-                    volumeIcon: document.querySelector('.volume-icon'),
-                    self: document.querySelector('.volume-bar'),
-                    volumeBar: document.querySelector('.volume-bar .bar')
-                }
-            },
-            musicManage:{
-                lyric:{
-                    main: document.querySelector('.lyric-list')
-                },
-                mProgress:{
-                    self: document.querySelector('#progress'),
-                    bar: document.querySelector('#progress div')
-                },
-                frequent:{
-                    canvas: document.querySelector('canvas')
-
-                }
-            },
-            user:{
-                header: document.querySelector('#user .header')
+        $('#music-list .list').dblclick((e) => {
+            let node = e.target;    
+            if(node.nodeName.toLowerCase() === 'li'){
+                control.querySong(node.dataset.name).setAudioSrc();
             }
-        };
-        let lyricNodes = {},
-            pLrcNode = null;
-        //歌词更新，什么的
-        EventUtil.addEvent(audio, 'timeupdate', (e) => {
-            let time = parseInt(audio.currentTime),
-                n = lyricNodes[time];
-            if(n){
-                if(pLrcNode){
-                    pLrcNode.style.color = n.style.color;
-                }
-                n.style.color = 'red';
-                pLrcNode = n;
+        });
+        $('.query-song').submit((e) => {
+            e.preventDefault();
+            let name = $('.query-song .in').val();
+            control.getSongList(name).then((list) => {
+                showList(list);
+            }).catch((err) => {throw new Error(err)});
+        });
+        let oldNode = null;
+        $('audio').on('timeupdate', () => {
+            let time = parseInt($('audio')[0].currentTime),
+                node = control.lrc.nodes[time];
+            if(node){
+                oldNode ? oldNode.style.color = 'rgba(255, 255, 255, .7)' : '';
+                node.style.color = 'red'; 
+                oldNode = node;
             }
             try{
-                n.nextElementSibling.nextElementSibling.nextElementSibling.scrollIntoView(false);
+                node.nextElementSibling.nextElementSibling.nextElementSibling.scrollIntoView(false);
             }catch(ex){
                 ;
             }
-            el.musicManage.mProgress.bar.style.width = `${(time / audio.duration) * 100}%`;
+            $('#progress div').width(`${$('audio')[0].currentTime / $('audio')[0].duration * 100}%`);
         });
-        //渲染歌曲列表
-        function showSongsInfo(name = String, songList = Array, sChildName = 'li'){
-            let showParent = el.musicList.main;
-            removeAllChild(showParent);
-            songList.forEach((info) => {
-                let item = document.createElement(sChildName);                
-                item.innerText = info.filename;
-                item.dataset.hash = info.hash;
-                item.dataset.name = name;
-                showParent.appendChild(item);
-            });
-        }
-        //双击播放
-        EventUtil.addEvent(el.musicList.main, 'dblclick', (e) => {
-            let t = e.target,
-                hash = null;
-            currentPlayList = ml.getSongList(t.dataset.name);
-            hash = currentPlayList.query(t.innerText).hash;
-            k.getSongInfo({
-                value: hash,
-                option: 'song'
-            }).then((songText) => {
-                let songData = JSON.parse(songText);
-                console.log(songData);
-                el.bg.style.backgroundImage = `url(${songData.img})`;
-                EventUtil.tirgger('onePlay', songData);
-            });
+        $('audio').on('play', () => {
+            control.play();
+            $('.play-pause').addClass('fa-pause-circle').removeClass('fa-play-circle');
         });
-        //搜索歌曲
-        EventUtil.addEvent(el.musicList.queryMusic.queryForm, 'submit', (e) => {
-            e.preventDefault();
-            let name = el.musicList.queryMusic.input.value;
-            if(ml.getSongList(name)){
-                showSongsInfo(name, ml.getSongList(name).songList);
-            }
-            k.getSongInfo({
-                value: name,
-                option: 'query'
-            }).then((text) => {
-                let songList = JSON.parse(text).info;
-                ml.addList(name, songList);
-                showSongsInfo(name, songList);
-            });
-        });
-        let s = null;
-        let pState = false;
-        function onePlay(eN = String, data = Array){
-            if(window.audioCtx === undefined){
-                window.audioCtx = new (AudioContext || webkitAudioContext)();
-                window.source = window.audioCtx.createMediaElementSource(audio);
-                window.analyser = window.audioCtx.createAnalyser();
-                window.source.connect(analyser);
-                window.analyser.connect(window.audioCtx.destination);
-            }
-            s = soundVisual(window.analyser, el.musicManage.frequent.canvas, drawSound);
-            onePlay = (eN = String, data = Array) => {
-                audio.src = k.enUrl(data.play_url);
-                pState = true;
-                el.control.play.classList.replace('fa-play-circle', 'fa-pause-circle');
-                removeAllChild(el.musicManage.lyric.main);
-                lyricNodes = l.renderLyric(el.musicManage.lyric.main, data.lyrics);
-            };
-            onePlay(eN, data);
-        }
-        function play(){
-            if(audio.currentSrc.length === 0){
-                return false;
-            }
-            s.run = true;
-            pState = true;
-            audio.play();
-            el.control.play.classList.replace('fa-play-circle', 'fa-pause-circle');
-        }
-        function pause(){
-            s.run = false;
-            pState = false;
-            audio.pause();
-            el.control.play.classList.replace('fa-pause-circle', 'fa-play-circle');
-        }
-        //监听按钮
-        EventUtil.addEvent(el.control.play, 'click', () => {
-            if(pState){
-                EventUtil.tirgger('pause');
-            }else{
-                EventUtil.tirgger('play');
-            }
-        });
-        EventUtil.addEvent(el.musicManage.mProgress.self, 'mousedown', (e) => {
-            if(navigator.userAgent.indexOf('Firefox') >= 0){
-                alert('兄贵你用的火狐，有些功能并不支持，我小叮当也没办法啊');
-                return false;
-            }
-            let x = e.layerX,
-                time = (x / el.musicManage.mProgress.self.offsetWidth * 100) * (audio.duration / 100);
-            console.log(time, x, el.musicManage.mProgress.self.offsetWidth);
-            audio.currentTime = time;
+        $('audio').on('pause', () => {
+            $('.play-pause').addClass('fa-play-circle').removeClass('fa-pause-circle');
         })
-        EventUtil.addEvent(audio, 'ended', (e) => {
-            let hash = currentPlayList.getSong('n').hash;
-            k.getSongInfo({
-                value: hash,
-                option: 'song'
-            }).then((songText) => {
-                let songData = JSON.parse(songText);
-                EventUtil.tirgger('onePlay', songData);
+        $('.play-pause').click(() => {
+            if(control.playStatus){
+                control.pause();
+            }else{
+                control.play();
+            }
+        });
+        $('.next').click(() => {
+            control.toggle('n').setAudioSrc();
+        });
+        $('.previous').click(() => {
+            control.toggle('p').setAudioSrc();
+        });
+        $('.volume-bar').click((e) => {
+            let n = e.offsetX / $('.volume-bar').width()  * 100;
+            $('.volume-bar .bar').width(`${n}%`);
+            $('audio')[0].volume = e.offsetX / 100;
+        });
+        $('body').one('click', (e) => {
+            [control.ctx, control.source, control.analyser] = createAudioContext(document.querySelector('audio'));
+        });
+        $('audio').one('play', (e) => {
+            $('#progress').click((e) => {
+                if(navigator.userAgent.indexOf('Firefox') >= 0){
+                    alert('兄弟别点了，不支持火狐，=_=!');
+                    return false;
+                }
+                let n = e.offsetX / $('#progress').width() * 100;
+                $('audio')[0].currentTime = $('audio')[0].duration / 100 * n;
+                $('#progress div').width(`${n}%`);
             });
         });
-        EventUtil.addEvent(el.control.next, 'click', (e) => {
-            let hash = currentPlayList.getSong('n').hash;
-            k.getSongInfo({
-                value: hash,
-                option: 'song'
-            }).then((songText) => {
-                let songData = JSON.parse(songText);
-                EventUtil.tirgger('onePlay', songData);
-            });
+        control.init({
+            audio: document.querySelector('audio'),
+            lElement: document.querySelector('#lyric .lyric-list'),
+            canvas: document.querySelector('canvas'),
+            draw: draw
         });
-        EventUtil.addEvent(el.control.previous, 'click', (e) => {
-            let hash = currentPlayList.getSong('p').hash;
-            k.getSongInfo({
-                value: hash,
-                option: 'song'
-            }).then((songText) => {
-                let songData = JSON.parse(songText);
-                EventUtil.tirgger('onePlay', songData);
-            });
+        $(document).ready(() => {
+            alert('更新时间：2019/1/16\nui：一只月亮\n代码：无名小卒');
+            control.getSongList('天份').then((list) => {
+                showList(list);
+            }).catch((err) => {throw new Error(err)});
         });
-        EventUtil.addEvent(el.control.volume.self, 'click', (e) => {
-            let x = e.layerX,
-                volume = x / el.control.volume.self.offsetWidth;
-            audio.volume = volume;
-            el.control.volume.volumeBar.style.width = `${x / el.control.volume.self.offsetWidth * 100}%`;
-        });
-        //监听第一次播放
-        EventUtil.listen('onePlay', onePlay);
-        //监听播放
-        EventUtil.listen('play', play);
-        //监听暂停
-        EventUtil.listen('pause', pause);
-        window.onload = () => {
-            k.getSongInfo({
-                value: '冬离秋归',
-                option: 'query'
-            }).then((text) => {
-                let songList = JSON.parse(text).info;
-                ml.addList(name, songList);
-                showSongsInfo(name, songList);
-            });
-            alert('豳羽 -- 音乐2.0版本\n主要更新ui，跟部分优化了部分代码，删了不合理的地方\n设计师：范冬雨\n程序员：无名小将');
-        };
     </script>
 </body>
 </html>

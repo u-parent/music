@@ -1,59 +1,3 @@
-function ajaxGetSongData(url){
-    return new Promise((resolve, reject) => {
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = 'arraybuffer';
-        EventUtil.addEvent(xhr, 'load', () => {
-            resolve(xhr.response);
-        });
-        xhr.open('GET', url, true);
-        xhr.send(null);
-    });
-}
-class Media{
-    constructor(){
-        this.buffer = null;
-        this.isPlay = true;
-    }
-    _emtry(){
-        this.pause();
-        this.ctx = null;
-        this.source = null;
-        this.analyser = null;
-    }
-    decode(buffer = Blob){
-        return new Promise((resolve, reject) => {
-            if(this.ctx !== undefined){
-                this._emtry();
-            }
-            this.ctx = new (AudioContext || webkitAudioContext)();
-            this.source = this.ctx.createBufferSource();
-            this.ctx.decodeAudioData(buffer).
-                then((data) => {
-                    this.buffer = buffer;
-                    this.source.buffer = data;
-                    this.analyser = this.ctx.createAnalyser();
-                    this.source.connect(this.analyser);
-                    this.analyser.connect(this.ctx.destination);
-                    this.source.start(0);
-                    this.isPlay = true;
-                    resolve();
-                });
-        });
-
-    }
-    play(){
-        if(this.analyser !== undefined){
-            this.analyser.connect(this.ctx.destination);
-            return this.isPlay = true;
-        }
-    }
-    pause(){
-        if(this.analyser !== undefined){
-            this.analyser.disconnect(this.ctx.destination);
-            return this.isPlay = false;
-        }
-    }
-}
 function readLocalFile(file, rState = 'o'){
     return new Promise((resolve, reject) => {
         let r = new FileReader();
@@ -76,28 +20,63 @@ function readLocalFile(file, rState = 'o'){
         
     });
 }
-class Lyric{
+//解析对象
+class ParseLrc{
+    constructor(){
+        this.CONTENT_RE = /[^\[\]]+$/gi;
+        this.M_RE      = /.\:/i;
+        this.S_RE      = /.{2}\..{2}/i;
+    }
+    _getLrcTime(lrc){
+        return (parseInt(lrc.match(this.M_RE)) * 60) + parseInt(lrc.match(this.S_RE));
+    }
+    _getLrcContent(lrc){
+        return lrc.match(this.CONTENT_RE);
+    }
     parseLrc(text = String){
-        let lyrics = text.split(/\n/g),
-            lyricMap = {};
-        lyrics.forEach((lyric) => {
-            let [m, s] = [
-                parseInt(lyric.match(/.\:/i)),
-                parseInt(lyric.match(/.{2}\..{2}/i))
+        let lrcLines = text.split(/\n/g),
+            lrcContentMap = {};
+        lrcLines.forEach((lrc) => {
+            let [time, content] = [
+                this._getLrcTime(lrc),
+                this._getLrcContent(lrc)
             ];
-            let text = lyric.match(/[^\[\]]+$/gi),
-                time = m * 60 + s;
-            lyricMap[time] = text;
+            lrcContentMap[time] = content;
         });
-        return lyricMap;
+        return lrcContentMap;
     }
-    render(lyricMap = Object, showNodeName = 'li'){
-        this.nodeMap = {};
-        for(let time in lyricMap){
-            let n = document.createElement(showNodeName);
-            n.innerText = lyricMap[time];
-            this.nodeMap[time] = n;
+}
+//歌词对象
+class Lrc extends ParseLrc{
+    constructor(parent = Element){
+        super();
+        this.showElement = parent;
+    }
+    _renderLrcChild(textLrcs = Object, childName = String){
+        let nodes = {};
+        for(let time in textLrcs){
+            nodes[time] = document.createElement(childName);
+            nodes[time].innerText = textLrcs[time];
         }
-        return this.nodeMap;
+        return this.nodes = nodes;
     }
+    render(text = String, childName = 'li'){
+        let textLrcs = this.parseLrc(text),
+            nodes    = this._renderLrcChild(textLrcs, childName);
+        for(let time in nodes){
+            this.showElement.appendChild(nodes[time]);
+        }
+        return [
+            textLrcs,
+            nodes
+        ];
+    }
+}
+function createAudioContext(audio = Element){
+    let ctx = new AudioContext(),
+        source = ctx.createMediaElementSource(audio),
+        analyser = ctx.createAnalyser();
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+    return [ctx, source, analyser];
 }

@@ -118,7 +118,7 @@ a{
     position: relative;
     height: 80vh;
     overflow: auto;
-    background-color: rgba(95, 22, 89, 0.4);
+    background-color: rgba(85, 79, 84, 0.4);
 }
 #music .container #user-musics #music-list .list{
     text-align: left;
@@ -126,6 +126,8 @@ a{
 #music-list .list li{
     padding: 4px;
     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 #music-list .list li:hover{
     cursor: pointer;

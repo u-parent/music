@@ -1,145 +1,59 @@
-
-
 class SoundVisual{
-	constructor(ctx, analyser, w, h, bar = 1000, barStyle = 'rgba(10, 10, 10, .3)'){
-		this.ctx = ctx;
+	constructor(canvas = Element){
+		this.analyser = null;
+		this.canvas = canvas;
+		this.status = true;
+		this.ctx = canvas.getContext('2d');
+		this.w = this.canvas.offsetWidth;
+		this.h = this.canvas.offsetHeight;
+	}
+	get data(){
+		this.data_ = new Uint8Array(this.analyser.frequencyBinCount);
+		this.analyser.getByteFrequencyData(this.data_);
+		return this.data_;
+	}
+	setDraw(draw = Function){
+		this.draw = draw;
+	}
+	start(analyser = AnalyserNode){
 		this.analyser = analyser;
-		this.run	  = true;
-		this.bar 	  = bar;
-		this.barStyle = barStyle;
-		this.buffer   = null;
-		this.w    	  = w;
-		this.h		  = h;
-		this.drawState = null;
-	}
-	_getBufferData(){
-		if(this.run){
-			this.buffer = new Uint8Array(this.analyser.frequencyBinCount);
-			this.analyser.getByteFrequencyData(this.buffer);
-		}else{
-			;
-		}
-	}
-	startDraw(draw = () => {}){
-		let that = this;
-		let animation = () => {
-			that.drawState = requestAnimationFrame(animation);
-			that._getBufferData();
-			that.ctx.fillStyle = that.barStyle;
-			draw(that.buffer, that.ctx, that.w, that.h, that.bar, that.analyser);
+		let d = () => {
+			if(!this.status){
+				d = () =>{};
+			}
+			this.draw(this.ctx, this.w, this.h, this.data);
+			this.status = requestAnimationFrame(d);
 		};
-		animation();
+		d();
 	}
-	changeDraw(draw = null){
-		if(draw == null){
-			return false;
-		}
-		cancelAnimationFrame(this.drawState);
-		let that = this;
-		let animation = () => {
-			that.drawState = requestAnimationFrame(animation);
-			that._getBufferData();
-			that.ctx.clearRect(0, 0, that.w, that.h);
-			that.ctx.fillStyle = that.barStyle;
-			draw(that.buffer, that.ctx, that.w, that.h, that.bar, that.analyser);
-		};
-		return true;
+	stop(){
+		cancelAnimationFrame(this.status);
+		this.status = false;
 	}
 }
-let soundVisual = (function(){
-	let sound = null;
-	return (analyser = null, canvas = null, callback = Function) => {
-		if(sound == null){
-			let ctx = canvas.getContext('2d');
-			sound = new SoundVisual(ctx, analyser, canvas.width, canvas.height);
-			sound.startDraw(callback);
-		}else{
-			sound.analyser = analyser;
-		}
-		return sound;
-	};
-})();
-let EventUtil = (function(){
-	let clientList = {};
-	return {
-		addEvent(el, type, handle){
-			if(el.addEventListener){
-				EventUtil.addEvent = (el, type, handle) => {
-					el.addEventListener(type, handle);
-				};
-			}else if(el.attachEvent){
-				EventUtil.addEvent = (el, type, handle) => {
-					el.attachEvent('on' + type, handle);
-				};
-			}else{
-				EventUtil.addEvent = (el, type, handle) => {
-					el['on' + type] = handle;
-				};
-			}
-			this.addEvent(el, type, handle);
-		},
-		getEvent(e){
-			return e || window.event;
-		},
-		getTarget(e){
-			return e.target || e.srcElement;
-		},
-		listen(key = String, func = String){
-			if(!clientList[key]){
-				clientList[key] = [];
-			}
-			clientList[key].push(func);
-		},
-		tirgger(key = String){
-			let fns = clientList[key];
-			if(!fns || fns.length === 0){
-				return false;
-			}
-			for(let i = 0; i < fns.length; i++){
-				fns[i].apply(this, arguments);
-			}
-		}
-	};
-})();
-function ajaxGetData(url = String){
-	return new Promise((resolve, reject) => {
-		let xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = () => {
-			if(xhr.status == 200 && xhr.readyState == 4){
-				resolve(xhr.responseText);
-			}
-		};
-		xhr.open('GET', url, true);
-		xhr.send(null);
-	});
-}
-let k = (function(){
-	return {
-		getSongInfo(o = Object){
-			return new Promise((resolve, reject) => {
-				let url = `/song?value=${encodeURIComponent(o.value)}&option=${o.option}`;
-				ajaxGetData(url).
-					then(value => {
-						resolve(value);
-					});
-			});
-		},
-		getSongData(url = String){
-			return new Promise((resolve, reject) => {
-				let xhr = new XMLHttpRequest();
-				xhr.responseType = 'arraybuffer';
-				xhr.onload = () => {
-					resolve(xhr.response);
-				}
-				xhr.open('GET', `/getSongData?songUrl=${url}`, true);
-				xhr.send(null);
-			});
-		},
-		enUrl(url = String){
-			return `/getSongData?songUrl=${url}`;
-		}
+class SongUrl{
+	kInfo(o = Object){
+		return `/song?value=${encodeURIComponent(o.value)}&option=${o.option}`;
 	}
-})();
+	kData(url = String){
+		return `/getSongData?songUrl=${url}`;
+	}
+	getSongList(name = String){
+		return new Promise((resolve, reject) => {
+			$.getJSON(this.kInfo({value: name, option: 'query'}), (data) => {
+				resolve(data.info);
+			});
+		});
+	}
+	getSongInfo(hash = String){
+		return new Promise((resolve, reject) => {
+			$.getJSON(this.kInfo({value: hash, option: 'song'}), (data) =>{
+				resolve(data);
+			});
+		});
+	}
+}
+//搜索结果
 class SongList{
 	constructor(songList = Array){
 		this.index = 0;
@@ -176,6 +90,7 @@ class SongList{
 		return s;
 	}
 }
+//歌曲库
 class MusicLib{
 	constructor(){
 		this.si = {};
@@ -193,9 +108,9 @@ class MusicLib{
 		if(this.ss[name] !== undefined){
 			list_ = this.ss[name];
 		}else{
-			list_ = this.ss[name] = new SongList(list)
+			list_ = this.ss[name] = new SongList(list);
 		}
-		return list;
+		return list_;
 	}
 	removeList(name){
 		let list = null;
@@ -208,15 +123,103 @@ class MusicLib{
 		return list;
 	}
 }
-let l = (function(){
-	let lyric = new Lyric();
+//歌词对象代理
+let lyric = (function(){
+	let l = null;
+	return (element = Element) => {
+		if(!l){
+			l = new Lrc(element);
+		}
+		return l;
+	};
+})();
+//获取url
+let url = (function(){
+	let sUrl = null;
+	return () => {
+		if(!sUrl){
+			sUrl = new SongUrl();
+		}
+		return sUrl;
+	}
+})();
+
+let control = (function(){
+	let audio = null,
+		lrc	  = null,
+		sound = null;
+	let ss = new MusicLib(),
+		su = new SongUrl();
 	return {
-		renderLyric(showParent = Element, lyrics = String){
-			let lyricNodeMap = lyric.render(lyric.parseLrc(lyrics));
-			for(let time in lyricNodeMap){
-				showParent.appendChild(lyricNodeMap[time]);
+		get su(){
+			return su;
+		},
+		get lrc(){
+			return lrc;
+		},
+		get audio(){
+			return audio;
+		},
+		set lyric(value = Element){
+			if(lyric.nodeType){
+				lyric.showElement = value;
 			}
-			return lyricNodeMap;
+			return lyric.showElement;
+		},
+		init(o){
+			audio = o.audio;
+			lrc   = lyric(o.lElement);
+			sound = new SoundVisual(o.canvas);
+			sound.setDraw(o.draw);
+		},
+		play(){
+			audio.play();
+			sound.start(this.analyser);
+			this.playStatus = true;
+		},
+		pause(){
+			sound.stop();
+			audio.pause();
+			this.playStatus = false;
+		},
+		toggle(flag = String){
+			console.log(this.currentSongList);
+			let song = this.currentSongList.getSong(flag);
+			if(song !== undefined){
+				this.currentSong = song;
+			}
+			return this;
+		},
+		querySong(name = String){
+			let song = this.currentSongList.query(name);
+			if(song !== undefined){
+				this.currentSong = song;
+			}
+			return this;
+		},
+		getSongList(listName = String){
+			return new Promise((resolve, reject) => {
+				let list = ss.getSongList(listName);
+				if(!list){
+					su.getSongList(listName).then((list) => {
+						this.addSongList(listName, list);
+						resolve(list);
+					});
+				}else{
+					resolve(list.songList);
+				}
+				this.currentSongList = list;
+			});
+		},
+		addSongList(listName = String, list = Array){
+			return this.currentSongList = ss.addList(listName, list);
+		},
+		setAudioSrc(hash = this.currentSong.hash){
+			su.getSongInfo(hash).then((info) => {
+				audio.src = su.kData(info.play_url);
+				lrc.render(info.lyrics, 'li');
+			});
+			$('#lyric .lyric-list').empty();
 		}
 	}
 })();
